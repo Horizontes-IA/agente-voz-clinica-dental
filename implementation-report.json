@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "kind": "dental",
+  "business": "Sonrisa Norte",
+  "stage": "generated-not-deployed",
+  "capabilities": [
+    "dashboard",
+    "knowledge-base",
+    "browser-voice-after-publishing",
+    "atomic-booking"
+  ],
+  "pending": [
+    "own-provider-accounts",
+    "local-tests",
+    "https-deployment",
+    "voice-selection-and-publishing",
+    "live-voice-test"
+  ],
+  "productionGaps": [
+    "individual-staff-auth",
+    "real-customer-verification",
+    "retention-policy",
+    "business-protocol-approval"
+  ],
+  "constraints": {
+    "resources": 2,
+    "timezone": "America/Monterrey",
+    "closedSundays": true,
+    "salonPackages": "single-provider-single-resource"
+  },
+  "testsExecuted": []
+}

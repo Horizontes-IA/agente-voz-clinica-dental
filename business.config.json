@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "kind": "dental",
+  "slug": "sonrisa-demo",
+  "name": "Sonrisa Norte",
+  "city": "Monterrey",
+  "timezone": "America/Monterrey",
+  "agent": {
+    "name": "Sofía",
+    "instructions": "Habla en español mexicano con frases breves. Haz una pregunta a la vez. La primera cita es una valoración. No garantiza completar un tratamiento. No recabes expediente clínico, radiografías ni datos de pago."
+  },
+  "providers": [
+    {
+      "id": "ana",
+      "name": "Dra. Ana Torres",
+      "specialty": "general",
+      "initials": "AT",
+      "color": "#288f77",
+      "weekdays": "1,2,3,4,5",
+      "start_hour": 9,
+      "end_hour": 19
+    },
+    {
+      "id": "luis",
+      "name": "Dr. Luis Medina",
+      "specialty": "general",
+      "initials": "LM",
+      "color": "#288f77",
+      "weekdays": "2,3,4,5,6",
+      "start_hour": 9,
+      "end_hour": 19
+    },
+    {
+      "id": "paula",
+      "name": "Dra. Paula Ríos",
+      "specialty": "ortodoncia",
+      "initials": "PR",
+      "color": "#288f77",
+      "weekdays": "2,4",
+      "start_hour": 14,
+      "end_hour": 19
+    }
+  ],
+  "services": [
+    {
+      "id": "valoracion",
+      "name": "Valoración inicial",
+      "duration": 30,
+      "buffer": 10,
+      "price": 600,
+      "specialty": "general",
+      "description": "Valoración inicial"
+    },
+    {
+      "id": "limpieza",
+      "name": "Limpieza de rutina",
+      "duration": 45,
+      "buffer": 10,
+      "price": 900,
+      "specialty": "general",
+      "description": "Solicitud sujeta a valoración profesional."
+    },
+    {
+      "id": "ortodoncia",
+      "name": "Valoración de ortodoncia",
+      "duration": 45,
+      "buffer": 10,
+      "price": 700,
+      "specialty": "ortodoncia",
+      "description": "Valoración de ortodoncia"
+    }
+  ],
+  "knowledge": [
+    {
+      "id": "kb-business",
+      "title": "Conoce el negocio",
+      "category": "Negocio",
+      "content": "# Sonrisa Norte\nNegocio ficticio en Monterrey, México. Todos los negocios, personas, precios y órdenes son ficticios. No inventes dirección, contacto, disponibilidad, pagos realizados ni mensajes enviados. La identidad se elige en el panel para la demo; no equivale a verificación real.\nHorario general: lunes a viernes 09:00–19:00 y sábado 09:00–14:00; domingo cerrado. La agenda del sistema determina la disponibilidad exacta."
+    },
+    {
+      "id": "kb-services",
+      "title": "Servicios y alcance",
+      "category": "Servicios",
+      "content": "- Valoración inicial: Valoración inicial\n- Limpieza de rutina: Solicitud sujeta a valoración profesional.\n- Valoración de ortodoncia: Valoración de ortodoncia\nConsulta get_service_catalog para precios, duración y especialidad; los precios de demostración son MXN."
+    },
+    {
+      "id": "kb-team",
+      "title": "Equipo",
+      "category": "Negocio",
+      "content": "Dra. Ana Torres: especialidad general; días de semana numéricos 1,2,3,4,5 (domingo=0), de 9 a 19.\nDr. Luis Medina: especialidad general; días de semana numéricos 2,3,4,5,6 (domingo=0), de 9 a 19.\nDra. Paula Ríos: especialidad ortodoncia; días de semana numéricos 2,4 (domingo=0), de 14 a 19.\nNo deduzcas disponibilidad a partir de horarios: usa search_availability."
+    },
+    {
+      "id": "kb-policies",
+      "title": "Reservas y cambios",
+      "category": "Políticas",
+      "content": "Toda reserva requiere resumen y aceptación explícita antes de commit. Cambios y cancelaciones automáticos hasta 24 horas antes; después, solicita revisión de recepción. Llegar 10 minutos antes. Dos puestos compartidos. No hay cobros ni penalizaciones automáticas."
+    },
+    {
+      "id": "kb-prices",
+      "title": "Precios y pagos",
+      "category": "Administración",
+      "content": "Consulta siempre el catálogo. No inventes promociones, seguros, descuentos ni presupuestos finales. No pidas tarjetas. Cualquier cambio de presupuesto se revisa con una persona."
+    },
+    {
+      "id": "kb-first",
+      "title": "Antes de la visita",
+      "category": "Clientes",
+      "content": "La primera cita es una valoración. No garantiza completar un tratamiento. No recabes expediente clínico, radiografías ni datos de pago."
+    },
+    {
+      "id": "kb-escalation",
+      "title": "Límites y atención humana",
+      "category": "Protocolos",
+      "content": "El asistente solo realiza tareas administrativas: no diagnostica, prescribe, recomienda dosis ni decide tratamientos. Ante una posible emergencia indica buscar atención de emergencia local sin demorar por reservas o identidad; el protocolo real debe aprobarlo el responsable clínico.\ncreate_staff_request registra una solicitud pendiente. No realiza transferencia de voz ni garantiza respuesta inmediata. Para menores, terceros o problemas de identidad, solicita revisión de una persona."
+    },
+    {
+      "id": "kb-faq",
+      "title": "Preguntas frecuentes",
+      "category": "Clientes",
+      "content": "¿Puedo escoger profesional? Sí, si hay disponibilidad compatible. ¿Reservan tratamientos complejos? Recepción los planifica después de valoración. ¿SMS? No está conectado."
+    }
+  ]
+}

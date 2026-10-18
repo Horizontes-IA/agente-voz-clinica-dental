@@ -1,0 +1,35 @@
+PRAGMA foreign_keys = ON;
+CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE integrations (name TEXT PRIMARY KEY, encrypted_value TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE providers (id TEXT PRIMARY KEY, name TEXT NOT NULL, specialty TEXT NOT NULL, initials TEXT NOT NULL, color TEXT NOT NULL, weekdays TEXT NOT NULL, start_hour INTEGER NOT NULL DEFAULT 9, end_hour INTEGER NOT NULL DEFAULT 19);
+CREATE TABLE services (id TEXT PRIMARY KEY, name TEXT NOT NULL, duration INTEGER NOT NULL, buffer INTEGER NOT NULL DEFAULT 10, price INTEGER, description TEXT NOT NULL, specialty TEXT NOT NULL DEFAULT 'general', enabled INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE patients (id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT NOT NULL, email TEXT, initials TEXT NOT NULL, is_demo INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE appointments (id TEXT PRIMARY KEY, patient_id TEXT NOT NULL REFERENCES patients(id), provider_id TEXT NOT NULL REFERENCES providers(id), service_id TEXT NOT NULL REFERENCES services(id), chair INTEGER NOT NULL CHECK(chair IN (1,2)), starts_at TEXT NOT NULL, ends_at TEXT NOT NULL, occupied_until TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'booked', source TEXT NOT NULL DEFAULT 'staff', notes TEXT NOT NULL DEFAULT '', version INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE INDEX appointments_time ON appointments(starts_at, occupied_until, status);
+CREATE TABLE blocks (id TEXT PRIMARY KEY, provider_id TEXT REFERENCES providers(id), chair INTEGER, starts_at TEXT NOT NULL, ends_at TEXT NOT NULL, reason TEXT NOT NULL);
+CREATE TABLE voice_sessions (id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, patient_id TEXT REFERENCES patients(id), verified INTEGER NOT NULL DEFAULT 0, mode TEXT NOT NULL DEFAULT 'demo', expires_at TEXT NOT NULL, conversation_id TEXT UNIQUE, created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE operations (id TEXT PRIMARY KEY, session_id TEXT NOT NULL, patient_id TEXT NOT NULL REFERENCES patients(id), action TEXT NOT NULL, appointment_id TEXT REFERENCES appointments(id), service_id TEXT NOT NULL, provider_id TEXT NOT NULL, chair INTEGER NOT NULL, starts_at TEXT NOT NULL, ends_at TEXT NOT NULL, occupied_until TEXT NOT NULL, original_version INTEGER, state TEXT NOT NULL DEFAULT 'prepared', expires_at TEXT NOT NULL, result TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE conversations (id TEXT PRIMARY KEY, patient_id TEXT REFERENCES patients(id), status TEXT NOT NULL DEFAULT 'active', channel TEXT NOT NULL DEFAULT 'web', duration INTEGER NOT NULL DEFAULT 0, summary TEXT NOT NULL DEFAULT '', intent TEXT NOT NULL DEFAULT 'general', transcript TEXT NOT NULL DEFAULT '[]', is_demo INTEGER NOT NULL DEFAULT 0, started_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE activities (id TEXT PRIMARY KEY, type TEXT NOT NULL, title TEXT NOT NULL, detail TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'system', created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE staff_requests (id TEXT PRIMARY KEY, patient_id TEXT REFERENCES patients(id), category TEXT NOT NULL, reason TEXT NOT NULL, priority TEXT NOT NULL DEFAULT 'normal', status TEXT NOT NULL DEFAULT 'open', created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE waitlist (id TEXT PRIMARY KEY, patient_id TEXT NOT NULL REFERENCES patients(id), service_id TEXT NOT NULL REFERENCES services(id), preferences TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'waiting', created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE knowledge_documents (id TEXT PRIMARY KEY, title TEXT NOT NULL, category TEXT NOT NULL, content TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1, published_version INTEGER NOT NULL DEFAULT 0, remote_id TEXT, updated_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE knowledge_revisions (id TEXT PRIMARY KEY, document_id TEXT NOT NULL REFERENCES knowledge_documents(id), version INTEGER NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')), UNIQUE(document_id,version));
+CREATE TABLE publication_jobs (id TEXT PRIMARY KEY, state TEXT NOT NULL, detail TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE UNIQUE INDEX one_publication ON publication_jobs(state) WHERE state='running';
+CREATE TABLE webhook_events (id TEXT PRIMARY KEY, received_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 1, resets_at INTEGER NOT NULL);
+CREATE TABLE notification_jobs (id TEXT PRIMARY KEY, appointment_id TEXT NOT NULL REFERENCES appointments(id), type TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'disabled', due_at TEXT NOT NULL, detail TEXT NOT NULL DEFAULT 'Canal SMS pendiente de conexión', UNIQUE(appointment_id,type));
+
+CREATE TRIGGER appointment_conflict_insert BEFORE INSERT ON appointments WHEN NEW.status IN ('booked','confirmed','checked_in') BEGIN
+ SELECT RAISE(ABORT,'SLOT_UNAVAILABLE') WHERE EXISTS (SELECT 1 FROM appointments a WHERE a.status IN ('booked','confirmed','checked_in') AND (a.provider_id=NEW.provider_id OR a.chair=NEW.chair) AND a.starts_at<NEW.occupied_until AND a.occupied_until>NEW.starts_at);
+ SELECT RAISE(ABORT,'SLOT_BLOCKED') WHERE EXISTS (SELECT 1 FROM blocks b WHERE (b.provider_id IS NULL OR b.provider_id=NEW.provider_id) AND (b.chair IS NULL OR b.chair=NEW.chair) AND b.starts_at<NEW.occupied_until AND b.ends_at>NEW.starts_at);
+END;
+CREATE TRIGGER appointment_conflict_update BEFORE UPDATE ON appointments WHEN NEW.status IN ('booked','confirmed','checked_in') BEGIN
+ SELECT RAISE(ABORT,'SLOT_UNAVAILABLE') WHERE EXISTS (SELECT 1 FROM appointments a WHERE a.id!=NEW.id AND a.status IN ('booked','confirmed','checked_in') AND (a.provider_id=NEW.provider_id OR a.chair=NEW.chair) AND a.starts_at<NEW.occupied_until AND a.occupied_until>NEW.starts_at);
+ SELECT RAISE(ABORT,'SLOT_BLOCKED') WHERE EXISTS (SELECT 1 FROM blocks b WHERE (b.provider_id IS NULL OR b.provider_id=NEW.provider_id) AND (b.chair IS NULL OR b.chair=NEW.chair) AND b.starts_at<NEW.occupied_until AND b.ends_at>NEW.starts_at);
+END;
+CREATE TRIGGER operation_hold_conflict BEFORE INSERT ON operations WHEN NEW.action!='cancel' BEGIN
+ SELECT RAISE(ABORT,'SLOT_UNAVAILABLE') WHERE EXISTS (SELECT 1 FROM operations o WHERE o.state='prepared' AND o.action!='cancel' AND o.expires_at>strftime('%Y-%m-%dT%H:%M:%fZ','now') AND (o.provider_id=NEW.provider_id OR o.chair=NEW.chair) AND o.starts_at<NEW.occupied_until AND o.occupied_until>NEW.starts_at);
+ SELECT RAISE(ABORT,'SLOT_UNAVAILABLE') WHERE EXISTS (SELECT 1 FROM appointments a WHERE a.id!=COALESCE(NEW.appointment_id,'') AND a.status IN ('booked','confirmed','checked_in') AND (a.provider_id=NEW.provider_id OR a.chair=NEW.chair) AND a.starts_at<NEW.occupied_until AND a.occupied_until>NEW.starts_at);
+END;

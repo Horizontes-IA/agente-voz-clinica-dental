@@ -1,0 +1,45 @@
+{
+  "name": "sonrisa-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "db:local": "wrangler d1 migrations apply sonrisa-demo --local",
+    "db:remote": "wrangler d1 migrations apply sonrisa-demo --remote",
+    "types": "wrangler types",
+    "test": "vitest run",
+    "setup": "node scripts/init-secrets.mjs",
+    "doctor": "node scripts/doctor.mjs"
+  },
+  "dependencies": {
+    "@elevenlabs/react": "1.18.0",
+    "date-fns": "4.4.0",
+    "date-fns-tz": "3.2.0",
+    "hono": "4.13.13",
+    "lucide-react": "1.59.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@elevenlabs/elevenlabs-js": "2.73.0",
+    "@playwright/test": "1.64.1",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.5",
+    "wrangler": "4.151.1"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.22.0"
+  }
+}
